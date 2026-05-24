@@ -1,0 +1,155 @@
+---
+import { siteConfig } from "../config";
+
+const hasProjects = siteConfig.projects && siteConfig.projects.length > 0;
+const hasExperience = siteConfig.experience && siteConfig.experience.length > 0;
+const hasEducation = siteConfig.education && siteConfig.education.length > 0;
+---
+
+<header
+  id="header"
+  class="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
+  style={`--accent-color: ${siteConfig.accentColor}`}
+>
+  <nav class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+    <!-- Logo / name -->
+    <a href="#" class="text-sm font-bold text-slate-800 dark:text-white tracking-tight hover:text-[var(--accent-color)] transition-colors">
+      {siteConfig.name.split(' ')[0]}<span style={`color: ${siteConfig.accentColor}`}>.</span>
+    </a>
+
+    <!-- Nav links — desktop only -->
+    <ul class="hidden md:flex items-center gap-8">
+      <li>
+        <a href="#about" class="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-[var(--accent-color)] transition-colors">
+          About
+        </a>
+      </li>
+      {hasProjects && (
+        <li>
+          <a href="#projects" class="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-[var(--accent-color)] transition-colors">
+            Projects
+          </a>
+        </li>
+      )}
+      {hasExperience && (
+        <li>
+          <a href="#experience" class="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-[var(--accent-color)] transition-colors">
+            Experience
+          </a>
+        </li>
+      )}
+      {hasEducation && (
+        <li>
+          <a href="#education" class="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-[var(--accent-color)] transition-colors">
+            Education
+          </a>
+        </li>
+      )}
+    </ul>
+
+    <!-- Right: CTA (desktop only) + dark toggle (always visible) -->
+    <div class="flex items-center gap-3">
+      <a
+        href={`mailto:${siteConfig.social.email}`}
+        class="hidden md:inline-flex px-4 py-2 rounded-lg text-sm font-semibold text-white transition-all duration-300 hover:opacity-90 hover:shadow-lg"
+        style={`background: ${siteConfig.accentColor}; box-shadow: 0 2px 12px ${siteConfig.accentColor}30`}
+      >
+        Hire Me
+      </a>
+
+      <!-- Dark mode toggle with tooltip — always visible -->
+      <div class="relative" id="tooltip-wrapper">
+        <button
+          id="theme-toggle"
+          aria-label="Toggle dark mode"
+          class="w-10 h-10 flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-[var(--accent-color)] hover:border-[var(--accent-color)] transition-all duration-200 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm shadow-sm"
+        >
+          <svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z"/>
+          </svg>
+          <svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z"/>
+          </svg>
+        </button>
+
+        <!-- Tooltip -->
+        <div
+          id="snap-tooltip"
+          role="tooltip"
+          class="pointer-events-none absolute top-full right-0 mt-3 z-[999]"
+          style="opacity: 0; transform: translateY(-4px); transition: opacity 0.2s ease, transform 0.2s ease;"
+        >
+          <!-- Arrow -->
+          <div class="absolute bottom-full right-3.5 w-0 h-0" style="border-left: 6px solid transparent; border-right: 6px solid transparent; border-bottom: 6px solid #1e293b;"></div>
+          <div class="bg-slate-800 text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-2xl whitespace-nowrap flex items-center gap-2">
+            <span class="text-base">🫰</span>
+            <span>Snap your fingers to toggle theme!</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+</header>
+
+<script>
+  // Scroll effect
+  window.addEventListener("scroll", () => {
+    const header = document.getElementById("header");
+    if (window.scrollY > 60) {
+      header?.classList.add("bg-white/90", "dark:bg-slate-950/90", "backdrop-blur-md", "border-b", "border-slate-200/80", "dark:border-slate-800/80", "shadow-sm");
+    } else {
+      header?.classList.remove("bg-white/90", "dark:bg-slate-950/90", "backdrop-blur-md", "border-b", "border-slate-200/80", "dark:border-slate-800/80", "shadow-sm");
+    }
+  });
+
+  // Dark mode toggle
+  const toggle = document.getElementById("theme-toggle");
+  const iconSun = document.getElementById("icon-sun");
+  const iconMoon = document.getElementById("icon-moon");
+  const tooltipWrapper = document.getElementById("tooltip-wrapper");
+  const snapTooltip = document.getElementById("snap-tooltip");
+
+  // Tooltip show/hide — hover on desktop, tap-flash on mobile
+  tooltipWrapper?.addEventListener("mouseenter", () => {
+    if (!snapTooltip) return;
+    snapTooltip.style.opacity = "1";
+    snapTooltip.style.transform = "translateY(0)";
+  });
+  tooltipWrapper?.addEventListener("mouseleave", () => {
+    if (!snapTooltip) return;
+    snapTooltip.style.opacity = "0";
+    snapTooltip.style.transform = "translateY(-4px)";
+  });
+
+  // On touch devices, flash the tooltip briefly when tapping the button
+  toggle?.addEventListener("touchstart", () => {
+    if (!snapTooltip) return;
+    snapTooltip.style.opacity = "1";
+    snapTooltip.style.transform = "translateY(0)";
+    setTimeout(() => {
+      snapTooltip.style.opacity = "0";
+      snapTooltip.style.transform = "translateY(-4px)";
+    }, 1800);
+  }, { passive: true });
+
+  function updateIcons() {
+    const isDark = document.documentElement.classList.contains("dark");
+    iconSun?.classList.toggle("hidden", !isDark);
+    iconMoon?.classList.toggle("hidden", isDark);
+  }
+
+  updateIcons();
+
+  toggle?.addEventListener("click", () => {
+    const isDark = document.documentElement.classList.toggle("dark");
+    localStorage.setItem("theme", isDark ? "dark" : "light");
+    updateIcons();
+  });
+
+  // Keep icon in sync when snap detector toggles the theme
+  document.addEventListener("theme-changed", () => updateIcons());
+</script>
+
+<style>
+  html { scroll-behavior: smooth; }
+</style>

@@ -1,0 +1,76 @@
+---
+import { siteConfig } from "../config";
+const hasExperience = siteConfig.experience && siteConfig.experience.length > 0;
+---
+
+{hasExperience && (
+  <section id="experience" class="py-24 px-8 sm:px-12 md:px-24 bg-white dark:bg-slate-900/50">
+    <div class="max-w-7xl mx-auto">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20 items-start">
+
+        <!-- Left: heading -->
+        <div class="lg:col-span-4">
+          <p class="text-sm font-semibold tracking-widest uppercase mb-3" style={`color: ${siteConfig.accentColor}`}>
+            Where I've worked
+          </p>
+          <h2 class="text-4xl sm:text-5xl xl:text-6xl font-bold text-slate-900 dark:text-white leading-tight">
+            Experi<br/>ence
+          </h2>
+          <div class="w-16 h-1 mt-4 rounded-full" style={`background: ${siteConfig.accentColor}`}></div>
+        </div>
+
+        <!-- Right: timeline -->
+        <div class="lg:col-span-8">
+          <div class="relative">
+            <!-- Vertical line -->
+            <div class="absolute left-5 top-0 bottom-0 w-px bg-slate-200 dark:bg-slate-800 hidden sm:block"></div>
+
+            <div class="space-y-8">
+              {siteConfig.experience.map((exp) => (
+                <div class="relative sm:pl-16">
+                  <!-- Timeline dot -->
+                  <div
+                    class="absolute left-3.5 top-6 w-3 h-3 rounded-full border-2 border-white dark:border-slate-900 hidden sm:block"
+                    style={`background: ${siteConfig.accentColor}`}
+                  ></div>
+
+                  <!-- Card -->
+                  <div class="p-6 sm:p-7 rounded-2xl border bg-slate-50 dark:bg-slate-900/80 border-slate-200 dark:border-slate-800 hover:border-[var(--accent-color)] hover:shadow-lg transition-all duration-300"
+                       style={`--accent-color: ${siteConfig.accentColor}`}>
+                    <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-4">
+                      <div>
+                        <h3 class="text-lg font-bold text-slate-900 dark:text-white">
+                          {exp.title}
+                        </h3>
+                        <p class="text-base font-semibold mt-0.5" style={`color: ${siteConfig.accentColor}`}>
+                          {exp.company}
+                        </p>
+                      </div>
+                      <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 whitespace-nowrap self-start">
+                        {exp.dateRange}
+                      </span>
+                    </div>
+
+                    <ul class="space-y-2.5">
+                      {exp.bullets.map((bullet) => (
+                        <li class="flex items-start gap-3">
+                          <span
+                            class="mt-2 w-1.5 h-1.5 rounded-full flex-shrink-0"
+                            style={`background: ${siteConfig.accentColor}`}
+                          ></span>
+                          <span class="text-sm sm:text-base text-slate-600 dark:text-slate-400 leading-relaxed">
+                            {bullet}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+)}

@@ -1,0 +1,49 @@
+---
+import { siteConfig } from "../config";
+---
+
+<section id="about" class="py-24 px-8 sm:px-12 md:px-24 bg-white dark:bg-slate-900/50">
+  <div class="max-w-7xl mx-auto">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20 items-start">
+
+      <!-- Left: heading -->
+      <div class="lg:col-span-4">
+        <p class="text-sm font-semibold tracking-widest uppercase mb-3" style={`color: ${siteConfig.accentColor}`}>
+          Get to know me
+        </p>
+        <h2 class="text-4xl sm:text-5xl xl:text-6xl font-bold text-slate-900 dark:text-white leading-tight">
+          About<br/>Me
+        </h2>
+        <div class="w-16 h-1 mt-4 rounded-full" style={`background: ${siteConfig.accentColor}`}></div>
+      </div>
+
+      <!-- Right: content -->
+      <div class="lg:col-span-8 space-y-8">
+        <p class="text-lg sm:text-xl leading-relaxed text-slate-600 dark:text-slate-400">
+          {siteConfig.aboutMe}
+        </p>
+
+        <!-- Skills -->
+        <div>
+          <p class="text-sm font-semibold tracking-widest uppercase text-slate-400 dark:text-slate-500 mb-4">
+            Tech Stack
+          </p>
+          <div class="flex flex-wrap gap-3">
+            {siteConfig.skills.map((skill) => (
+              <span
+                class="group relative px-4 py-2 rounded-lg text-sm font-semibold border transition-all duration-300 cursor-default
+                       bg-slate-50 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300
+                       border-slate-200 dark:border-slate-700
+                       hover:border-[var(--accent-color)] hover:text-[var(--accent-color)]
+                       hover:-translate-y-0.5 hover:shadow-md"
+                style={`--accent-color: ${siteConfig.accentColor}`}
+              >
+                {skill}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,60 @@
+---
+import { siteConfig } from "../config";
+const hasEducation = siteConfig.education && siteConfig.education.length > 0;
+---
+
+{hasEducation && (
+  <section id="education" class="py-24 px-8 sm:px-12 md:px-24 bg-slate-50 dark:bg-[#0a0f1e]">
+    <div class="max-w-7xl mx-auto">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20 items-start">
+
+        <!-- Left: heading -->
+        <div class="lg:col-span-4">
+          <p class="text-sm font-semibold tracking-widest uppercase mb-3" style={`color: ${siteConfig.accentColor}`}>
+            My background
+          </p>
+          <h2 class="text-4xl sm:text-5xl xl:text-6xl font-bold text-slate-900 dark:text-white leading-tight">
+            Educa<br/>tion
+          </h2>
+          <div class="w-16 h-1 mt-4 rounded-full" style={`background: ${siteConfig.accentColor}`}></div>
+        </div>
+
+        <!-- Right: cards -->
+        <div class="lg:col-span-8 space-y-6">
+          {siteConfig.education.map((edu) => (
+            <div class="p-6 sm:p-8 rounded-2xl border bg-white dark:bg-slate-900/80 border-slate-200 dark:border-slate-800 hover:border-[var(--accent-color)] hover:shadow-lg transition-all duration-300"
+                 style={`--accent-color: ${siteConfig.accentColor}`}>
+              <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-5">
+                <div>
+                  <h3 class="text-lg font-bold text-slate-900 dark:text-white">
+                    {edu.degree}
+                  </h3>
+                  <p class="text-base font-semibold mt-0.5" style={`color: ${siteConfig.accentColor}`}>
+                    {edu.school}
+                  </p>
+                </div>
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 whitespace-nowrap self-start">
+                  {edu.dateRange}
+                </span>
+              </div>
+
+              <ul class="space-y-2.5">
+                {edu.achievements.map((achievement) => (
+                  <li class="flex items-start gap-3">
+                    <span
+                      class="mt-2 w-1.5 h-1.5 rounded-full flex-shrink-0"
+                      style={`background: ${siteConfig.accentColor}`}
+                    ></span>
+                    <span class="text-sm sm:text-base text-slate-600 dark:text-slate-400 leading-relaxed">
+                      {achievement}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </section>
+)}
