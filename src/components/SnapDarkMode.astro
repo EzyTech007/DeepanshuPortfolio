@@ -1,5 +1,6 @@
-<!-- Snap-to-toggle dark mode via microphone -->
-<!-- Uses frequency analysis to distinguish finger snaps from voice/music -->
+<!-- Snap-to-toggle dark mode via microphone + camera -->
+<!-- Audio: frequency analysis to distinguish finger snaps from voice/music -->
+<!-- Visual: motion burst detection on camera feed to catch snap gesture -->
 
 <div
   id="snap-toast"
@@ -11,34 +12,77 @@
   <span id="snap-toast-text">Dark mode on</span>
 </div>
 
+<!-- Camera PiP indicator -->
+<div
+  id="snap-cam-pip"
+  title="Snap detector active (camera + mic)"
+  class="fixed bottom-6 right-6 z-[200] flex flex-col items-center gap-1 cursor-pointer select-none"
+  style="opacity: 0; transition: opacity 0.4s ease;"
+>
+  <div class="relative rounded-xl overflow-hidden shadow-lg border-2 border-blue-500" style="width:96px;height:72px;">
+    <video id="snap-cam-video" autoplay muted playsinline class="w-full h-full object-cover" style="transform:scaleX(-1);"></video>
+    <canvas id="snap-cam-canvas" class="hidden" style="width:96px;height:72px;"></canvas>
+    <!-- Pulse ring when snap detected -->
+    <div id="snap-cam-ring" class="absolute inset-0 rounded-xl border-4 border-blue-400 pointer-events-none" style="opacity:0;transition:opacity 0.2s ease;"></div>
+  </div>
+  <!-- Status dots -->
+  <div class="flex items-center gap-2">
+    <span id="snap-mic-dot" class="flex items-center gap-1 text-xs font-medium text-slate-500 dark:text-slate-400">
+      <span class="inline-block w-2 h-2 rounded-full bg-slate-400" id="snap-mic-dot-circle"></span>
+      mic
+    </span>
+    <span id="snap-cam-dot" class="flex items-center gap-1 text-xs font-medium text-slate-500 dark:text-slate-400">
+      <span class="inline-block w-2 h-2 rounded-full bg-slate-400" id="snap-cam-dot-circle"></span>
+      cam
+    </span>
+  </div>
+</div>
+
 <script>
   (async () => {
-    // ── Tuning ─────────────────────────────────────────────────────────────
-    // A finger snap is a very short, broadband transient with strong
-    // high-frequency energy. Voice and music are sustained and low-frequency.
-
+    // ── Audio Tuning ───────────────────────────────────────────────────────
     const SAMPLE_RATE         = 44100;
     const FFT_SIZE            = 1024;
-
-    // RMS threshold — snap must be loud enough
     const RMS_THRESHOLD       = 0.08;
-
-    // High-freq ratio: snaps have lots of energy above ~2 kHz relative to total.
-    // Voice sits mostly below 1 kHz. Require at least this ratio in high bins.
     const HIGH_FREQ_RATIO     = 0.40;
+    const MAX_LOUD_FRAMES     = 6;
 
-    // How many consecutive loud frames before we consider it "sustained" (not a snap)
-    const MAX_LOUD_FRAMES     = 6;   // ~6 × 16ms ≈ 100ms at 60fps
+    // ── Camera Tuning ──────────────────────────────────────────────────────
+    // A snap causes a very brief, sharp motion burst (hand moves fast then stops).
+    // We diff consecutive frames and look for a spike in changed pixels.
+    const CAM_WIDTH           = 160;
+    const CAM_HEIGHT          = 120;
+    const MOTION_THRESHOLD    = 30;   // per-pixel diff threshold (0-255)
+    const MOTION_RATIO_MIN    = 0.04; // at least 4% of pixels must change
+    const MOTION_RATIO_MAX    = 0.55; // but not more than 55% (whole-body movement)
+    const CAM_MAX_LOUD_FRAMES = 5;    // max frames the motion burst can last
 
-    // Cooldown between snaps
+    // ── Shared cooldown & coincidence window ──────────────────────────────
+    // BOTH mic AND camera must fire within COINCIDENCE_MS of each other
+    // for the toggle to happen.
     const COOLDOWN_MS         = 900;
+    const COINCIDENCE_MS      = 400;  // max gap between mic snap and cam snap
+    let lastSnap              = 0;
+
+    // Timestamps of the most recent unmatched snap from each source
+    let lastMicSnapAt         = -Infinity;
+    let lastCamSnapAt         = -Infinity;
+
+    // ── DOM refs ───────────────────────────────────────────────────────────
+    const toast         = document.getElementById("snap-toast")!;
+    const toastIcon     = document.getElementById("snap-toast-icon")!;
+    const toastText     = document.getElementById("snap-toast-text")!;
+    const pip           = document.getElementById("snap-cam-pip")!;
+    const camVideo      = document.getElementById("snap-cam-video") as HTMLVideoElement;
+    const camCanvas     = document.getElementById("snap-cam-canvas") as HTMLCanvasElement;
+    const camRing       = document.getElementById("snap-cam-ring")!;
+    const micDotCircle  = document.getElementById("snap-mic-dot-circle")!;
+    const camDotCircle  = document.getElementById("snap-cam-dot-circle")!;
+
+    let toastTimer: ReturnType<typeof setTimeout> | null = null;
+    let ringTimer:  ReturnType<typeof setTimeout> | null = null;
 
     // ── Toast ──────────────────────────────────────────────────────────────
-    const toast     = document.getElementById("snap-toast")!;
-    const toastIcon = document.getElementById("snap-toast-icon")!;
-    const toastText = document.getElementById("snap-toast-text")!;
-    let toastTimer: ReturnType<typeof setTimeout> | null = null;
-
     function showToast(dark: boolean) {
       toastIcon.textContent = dark ? "🌙" : "☀️";
       toastText.textContent = dark ? "Dark mode on" : "Light mode on";
@@ -57,110 +101,189 @@
       }, 2200);
     }
 
-    // ── Dark mode toggle ───────────────────────────────────────────────────
-    function toggleDark() {
-      const isDark = document.documentElement.classList.toggle("dark");
-      localStorage.setItem("theme", isDark ? "dark" : "light");
-      showToast(isDark);
-      document.dispatchEvent(new CustomEvent("theme-changed", { detail: { dark: isDark } }));
+    function flashRing() {
+      camRing.style.opacity = "1";
+      if (ringTimer) clearTimeout(ringTimer);
+      ringTimer = setTimeout(() => { camRing.style.opacity = "0"; }, 300);
     }
 
-    // ── Mic access ────────────────────────────────────────────────────────
-    let stream: MediaStream;
+    // ── Dark mode toggle ───────────────────────────────────────────────────
+    // Called by each sensor when it detects a snap.
+    // Only fires the actual toggle when BOTH sensors have snapped within COINCIDENCE_MS.
+    function reportSnap(source: "mic" | "cam") {
+      const now = performance.now();
+
+      // Ignore if we're still in cooldown
+      if (now - lastSnap < COOLDOWN_MS) return;
+
+      if (source === "mic") {
+        lastMicSnapAt = now;
+      } else {
+        lastCamSnapAt = now;
+      }
+
+      // Check if the other sensor fired recently enough
+      const gap = Math.abs(lastMicSnapAt - lastCamSnapAt);
+      if (gap <= COINCIDENCE_MS) {
+        // Both matched — reset timestamps and toggle
+        lastMicSnapAt = -Infinity;
+        lastCamSnapAt = -Infinity;
+        lastSnap = now;
+
+        const isDark = document.documentElement.classList.toggle("dark");
+        localStorage.setItem("theme", isDark ? "dark" : "light");
+        showToast(isDark);
+        flashRing();
+        document.dispatchEvent(new CustomEvent("theme-changed", { detail: { dark: isDark } }));
+      }
+    }
+
+    // ── Mic setup ─────────────────────────────────────────────────────────
+    let micReady = false;
     try {
-      stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+      micReady = true;
+      micDotCircle.style.backgroundColor = "#22c55e"; // green
+
+      const ctx     = new AudioContext();
+      const source  = ctx.createMediaStreamSource(stream);
+      const timeDom = ctx.createAnalyser();
+      timeDom.fftSize = FFT_SIZE;
+      source.connect(timeDom);
+      const freqDom = ctx.createAnalyser();
+      freqDom.fftSize = FFT_SIZE;
+      source.connect(freqDom);
+
+      const timeBuf = new Float32Array(timeDom.fftSize);
+      const freqBuf = new Uint8Array(freqDom.frequencyBinCount);
+      const highFreqStartBin = Math.floor(2000 / (SAMPLE_RATE / FFT_SIZE));
+
+      function getRMS(): number {
+        timeDom.getFloatTimeDomainData(timeBuf);
+        let s = 0;
+        for (let i = 0; i < timeBuf.length; i++) s += timeBuf[i] * timeBuf[i];
+        return Math.sqrt(s / timeBuf.length);
+      }
+
+      function getHighFreqRatio(): number {
+        freqDom.getByteFrequencyData(freqBuf);
+        let total = 0, high = 0;
+        for (let i = 0; i < freqBuf.length; i++) {
+          total += freqBuf[i];
+          if (i >= highFreqStartBin) high += freqBuf[i];
+        }
+        return total === 0 ? 0 : high / total;
+      }
+
+      let micState: "idle" | "attack" | "sustained" = "idle";
+      let micLoudFrames = 0;
+
+      function micLoop() {
+        requestAnimationFrame(micLoop);
+        const rms  = getRMS();
+        const loud = rms > RMS_THRESHOLD;
+
+        if (micState === "idle") {
+          if (loud) { micState = "attack"; micLoudFrames = 1; }
+        } else if (micState === "attack") {
+          if (loud) {
+            micLoudFrames++;
+            if (micLoudFrames > MAX_LOUD_FRAMES) micState = "sustained";
+          } else {
+            const ratio = getHighFreqRatio();
+            if (ratio >= HIGH_FREQ_RATIO) reportSnap("mic");
+            micState = "idle";
+            micLoudFrames = 0;
+          }
+        } else if (micState === "sustained") {
+          if (!loud) { micState = "idle"; micLoudFrames = 0; }
+        }
+      }
+      micLoop();
     } catch {
       console.warn("[SnapDarkMode] Microphone permission denied.");
-      return;
+      micDotCircle.style.backgroundColor = "#ef4444"; // red
     }
 
-    const ctx      = new AudioContext();
-    const source   = ctx.createMediaStreamSource(stream);
+    // ── Camera setup ──────────────────────────────────────────────────────
+    let camReady = false;
+    try {
+      const camStream = await navigator.mediaDevices.getUserMedia({
+        video: { width: CAM_WIDTH, height: CAM_HEIGHT, facingMode: "user" },
+        audio: false,
+      });
+      camVideo.srcObject = camStream;
+      await new Promise<void>((res) => { camVideo.onloadedmetadata = () => res(); });
 
-    // Time-domain analyser for RMS
-    const timeDom  = ctx.createAnalyser();
-    timeDom.fftSize = FFT_SIZE;
-    source.connect(timeDom);
+      camCanvas.width  = CAM_WIDTH;
+      camCanvas.height = CAM_HEIGHT;
+      const camCtx = camCanvas.getContext("2d", { willReadFrequently: true })!;
 
-    // Frequency analyser for spectral check
-    const freqDom  = ctx.createAnalyser();
-    freqDom.fftSize = FFT_SIZE;
-    source.connect(freqDom);
+      camReady = true;
+      camDotCircle.style.backgroundColor = "#22c55e"; // green
 
-    const timeBuf  = new Float32Array(timeDom.fftSize);
-    const freqBuf  = new Uint8Array(freqDom.frequencyBinCount);  // 0–255 per bin
+      // Show PiP once at least one sensor is ready
+      pip.style.opacity = "1";
 
-    // Bin index corresponding to ~2 kHz
-    const highFreqStartBin = Math.floor(2000 / (SAMPLE_RATE / FFT_SIZE));
+      let prevData: Uint8ClampedArray | null = null;
+      let camState: "idle" | "attack" | "sustained" = "idle";
+      let camLoudFrames = 0;
 
-    function getRMS(): number {
-      timeDom.getFloatTimeDomainData(timeBuf);
-      let s = 0;
-      for (let i = 0; i < timeBuf.length; i++) s += timeBuf[i] * timeBuf[i];
-      return Math.sqrt(s / timeBuf.length);
-    }
+      function getMotionRatio(): number {
+        camCtx.drawImage(camVideo, 0, 0, CAM_WIDTH, CAM_HEIGHT);
+        const frame = camCtx.getImageData(0, 0, CAM_WIDTH, CAM_HEIGHT);
+        const curr  = frame.data;
 
-    function getHighFreqRatio(): number {
-      freqDom.getByteFrequencyData(freqBuf);
-      let total = 0, high = 0;
-      for (let i = 0; i < freqBuf.length; i++) {
-        total += freqBuf[i];
-        if (i >= highFreqStartBin) high += freqBuf[i];
+        if (!prevData) {
+          prevData = new Uint8ClampedArray(curr);
+          return 0;
+        }
+
+        let changed = 0;
+        const total = CAM_WIDTH * CAM_HEIGHT;
+        for (let i = 0; i < curr.length; i += 4) {
+          const dr = Math.abs(curr[i]   - prevData[i]);
+          const dg = Math.abs(curr[i+1] - prevData[i+1]);
+          const db = Math.abs(curr[i+2] - prevData[i+2]);
+          if ((dr + dg + db) / 3 > MOTION_THRESHOLD) changed++;
+        }
+
+        prevData.set(curr);
+        return changed / total;
       }
-      return total === 0 ? 0 : high / total;
-    }
 
-    // ── Detection state machine ────────────────────────────────────────────
-    // States: IDLE → ATTACK (first loud frame) → check on falling edge
-    // If loud for too many frames → SUSTAINED (voice/music) → back to IDLE
+      function camLoop() {
+        requestAnimationFrame(camLoop);
+        if (camVideo.readyState < 2) return;
 
-    let state: "idle" | "attack" | "sustained" = "idle";
-    let loudFrames  = 0;
-    let lastSnap    = 0;
+        const ratio = getMotionRatio();
+        const active = ratio >= MOTION_RATIO_MIN && ratio <= MOTION_RATIO_MAX;
 
-    function loop() {
-      requestAnimationFrame(loop);
-
-      const now  = performance.now();
-      const rms  = getRMS();
-      const loud = rms > RMS_THRESHOLD;
-
-      if (state === "idle") {
-        if (loud) {
-          state      = "attack";
-          loudFrames = 1;
-        }
-
-      } else if (state === "attack") {
-        if (loud) {
-          loudFrames++;
-          if (loudFrames > MAX_LOUD_FRAMES) {
-            // Too long — this is voice, music, clap, etc.
-            state = "sustained";
+        if (camState === "idle") {
+          if (active) { camState = "attack"; camLoudFrames = 1; }
+        } else if (camState === "attack") {
+          if (active) {
+            camLoudFrames++;
+            if (camLoudFrames > CAM_MAX_LOUD_FRAMES) camState = "sustained";
+          } else {
+            // Short burst of motion in the right range → snap!
+            reportSnap("cam");
+            camState = "idle";
+            camLoudFrames = 0;
           }
-        } else {
-          // Falling edge — short burst, now check frequency profile
-          const ratio = getHighFreqRatio();
-          const sinceSnap = now - lastSnap;
-
-          if (ratio >= HIGH_FREQ_RATIO && sinceSnap > COOLDOWN_MS) {
-            // ✅ Short burst + high-frequency rich = finger snap
-            lastSnap = now;
-            toggleDark();
-          }
-          state      = "idle";
-          loudFrames = 0;
-        }
-
-      } else if (state === "sustained") {
-        // Wait for silence before resetting
-        if (!loud) {
-          state      = "idle";
-          loudFrames = 0;
+        } else if (camState === "sustained") {
+          if (!active) { camState = "idle"; camLoudFrames = 0; }
         }
       }
+      camLoop();
+    } catch {
+      console.warn("[SnapDarkMode] Camera permission denied.");
+      camDotCircle.style.backgroundColor = "#ef4444"; // red
     }
 
-    loop();
+    // Show PiP if at least mic is ready (even without camera)
+    if (micReady && !camReady) {
+      pip.style.opacity = "1";
+    }
   })();
 </script>
