@@ -33,19 +33,6 @@
     // Cooldown between snaps
     const COOLDOWN_MS         = 900;
 
-    // ── Disco Controller tuning ────────────────────────────────────────────
-    const BURST_WINDOW_MS          = 1500;  // ms window to collect snaps for a burst
-    const BURST_MIN_COUNT          = 2;     // minimum snaps to qualify as a burst
-    const DISCO_TOGGLE_COUNT       = 5;     // number of dark/light toggles in the effect
-    const DISCO_TOGGLE_INTERVAL_MS = 150;   // ms between each toggle
-    const DISCO_COOLDOWN_MS        = 3000;  // ms cooldown after effect before next trigger
-
-    // ── Disco Controller state ─────────────────────────────────────────────
-    let discoActive   = false;
-    let discoEndTime  = 0;
-    let snapTimestamps: number[] = [];
-    let fallbackTimer: ReturnType<typeof setTimeout> | null = null;
-
     // ── Toast ──────────────────────────────────────────────────────────────
     const toast     = document.getElementById("snap-toast")!;
     const toastIcon = document.getElementById("snap-toast-icon")!;
@@ -76,97 +63,6 @@
       localStorage.setItem("theme", isDark ? "dark" : "light");
       showToast(isDark);
       document.dispatchEvent(new CustomEvent("theme-changed", { detail: { dark: isDark } }));
-    }
-
-    // ── rawToggle: toggle dark class only, no toast / localStorage ─────────
-    function rawToggle(): void {
-      document.documentElement.classList.toggle("dark");
-    }
-
-    // ── startDiscoEffect: orchestrates the strobe sequence ────────────────
-    async function startDiscoEffect(): Promise<void> {
-      // Step 1: Mark effect as active and clear the snap buffer
-      discoActive = true;
-      snapTimestamps = [];
-
-      // Step 2: Record the theme state before the effect begins
-      const preDiscoTheme = document.documentElement.classList.contains("dark");
-
-      // Step 3: Dispatch start event
-      document.dispatchEvent(new CustomEvent("disco-effect-start"));
-
-      // Step 4: Update aria-live region
-      toastText.textContent = "Disco effect active";
-
-      // Step 5: Respect prefers-reduced-motion — single toggle only
-      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-        rawToggle();
-      } else {
-        // Step 6: Disable CSS transitions during the strobe sequence
-        document.documentElement.style.transition = "none";
-
-        // Step 7: Run the toggle sequence with delays between each toggle
-        const delay = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms));
-        for (let i = 0; i < DISCO_TOGGLE_COUNT; i++) {
-          rawToggle();
-          await delay(DISCO_TOGGLE_INTERVAL_MS);
-        }
-
-        // Step 8: Re-enable CSS transitions
-        document.documentElement.style.removeProperty("transition");
-      }
-
-      // Step 9: Restore pre-disco theme if needed
-      if (document.documentElement.classList.contains("dark") !== preDiscoTheme) {
-        rawToggle();
-      }
-
-      // Step 10: Persist the restored theme to localStorage
-      localStorage.setItem("theme", preDiscoTheme ? "dark" : "light");
-
-      // Step 11: Show a single toast reflecting the restored theme
-      showToast(preDiscoTheme);
-
-      // Step 12: Dispatch end event
-      document.dispatchEvent(new CustomEvent("disco-effect-end"));
-
-      // Step 13: Mark effect as done and record end time
-      discoActive = false;
-      discoEndTime = performance.now();
-    }
-
-    // ── onSnap: routes each qualifying snap through the Disco Controller ───
-    function onSnap(): void {
-      const now = performance.now();
-
-      // Cooldown guard: ignore snaps too soon after a disco effect
-      if (now - discoEndTime <= DISCO_COOLDOWN_MS) return;
-
-      // Active guard: ignore snaps while a disco effect is running
-      if (discoActive) return;
-
-      // Record this snap and prune entries outside the burst window
-      snapTimestamps.push(now);
-      snapTimestamps = snapTimestamps.filter(t => now - t <= BURST_WINDOW_MS);
-
-      const count = snapTimestamps.length;
-
-      // Cancel any pending single-snap fallback
-      if (fallbackTimer !== null) {
-        clearTimeout(fallbackTimer);
-        fallbackTimer = null;
-      }
-
-      if (count >= BURST_MIN_COUNT) {
-        // Burst detected — trigger the disco effect
-        startDiscoEffect();
-      } else {
-        // Not enough snaps yet — schedule a single-snap fallback
-        fallbackTimer = setTimeout(() => {
-          fallbackTimer = null;
-          toggleDark();
-        }, BURST_WINDOW_MS);
-      }
     }
 
     // ── Mic access ────────────────────────────────────────────────────────
@@ -250,7 +146,7 @@
           if (ratio >= HIGH_FREQ_RATIO && sinceSnap > COOLDOWN_MS) {
             // ✅ Short burst + high-frequency rich = finger snap
             lastSnap = now;
-            onSnap();
+            toggleDark();
           }
           state      = "idle";
           loudFrames = 0;

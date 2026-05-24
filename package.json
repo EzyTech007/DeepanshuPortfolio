@@ -6,8 +6,7 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro",
-    "test": "vitest --run"
+    "astro": "astro"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.9",
@@ -18,7 +17,6 @@
   },
   "devDependencies": {
     "fast-check": "^4.8.0",
-    "jsdom": "^29.1.1",
     "vitest": "^4.1.7"
   }
 }
