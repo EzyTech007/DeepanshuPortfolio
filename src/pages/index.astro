@@ -6,7 +6,6 @@ import Projects from "../components/Projects.astro";
 import Experience from "../components/Experience.astro";
 import Education from "../components/Education.astro";
 import Footer from "../components/Footer.astro";
-import SnapDarkMode from "../components/SnapDarkMode.astro";
 import { siteConfig } from "../config";
 import "../styles/global.css";
 ---
@@ -27,9 +26,9 @@ import "../styles/global.css";
     <title>{siteConfig.name} - {siteConfig.title}</title>
     <!-- Apply saved theme before paint to avoid flash -->
     <script is:inline>
-      const theme = localStorage.getItem('theme');
-      if (theme === 'dark') {
-        document.documentElement.classList.add('dark');
+      const theme = localStorage.getItem("theme");
+      if (theme === "dark") {
+        document.documentElement.classList.add("dark");
       }
     </script>
   </head>
@@ -44,6 +43,5 @@ import "../styles/global.css";
       <Education />
     </section>
     <Footer />
-    <SnapDarkMode />
   </body>
 </html>

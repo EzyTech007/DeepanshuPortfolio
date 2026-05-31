@@ -1,187 +1,179 @@
-<img width="1943" height="1093" alt="image" src="https://github.com/user-attachments/assets/cc2ff955-17c2-48c7-81c8-479a0f061850" />
+<div align="center">
 
-# DevPortfolio Template
+# 🚀 Deepanshu Choudhary — Portfolio
 
-A modern, minimalist portfolio template built with Astro and Tailwind CSS. Perfect for developers looking to showcase their skills, experience, and projects in a clean, professional way.
+### Full Stack Engineer · Problem Solver · Continuous Learner
 
-This was completely rebuilt from the ground up from V1. This template was built to be entirely ready to go with a quick config edit (see below) but also provides the ability to easily extend in whatever way you want.
+[![Live Site](https://img.shields.io/badge/🌐_Live_Site-Visit_Portfolio-1d4ed8?style=for-the-badge)](https://ezytech007.github.io/DeepanshuPortfolio)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0077B5?style=for-the-badge&logo=linkedin)](https://www.linkedin.com/in/dev-deepanshuch/)
+[![GitHub](https://img.shields.io/badge/GitHub-Follow-181717?style=for-the-badge&logo=github)](https://github.com/deepanshu7007)
+[![Twitter](https://img.shields.io/badge/Twitter-Follow-1DA1F2?style=for-the-badge&logo=twitter)](https://x.com/Deepanshu7007Ch)
 
-This template also comes with `CLAUDE.md` and `.cursor/rules` files for easy integration with your existing AI workflows.
+</div>
 
-> **📬 Connect & Share!**  
-> For questions and updates, feel free to reach out on [**X (Twitter)**](https://x.com/rfitzio).  
-> If you've built and published your personal site with this template, I'd love to see it! Send me a DM 🚀
+---
 
-## Preview
+## 👨‍💻 About
 
-To view a live preview of the site, [click here](https://ryanfitzgerald.github.io/devportfolio/).
+A modern, responsive personal portfolio built to showcase my work as a **Full-Stack Developer**. I specialize in building scalable backend systems and clean frontend experiences using technologies like **Spring Boot**, **NestJS**, **Node.js**, **React**, **PostgreSQL**, and **Docker**.
 
-## Built With
+This portfolio highlights my projects, professional experience, and technical skills — all in one place.
 
-- **[Astro](https://astro.build/)** - Static site generator for modern web apps
-- **[Tailwind CSS v4](https://tailwindcss.com/)** - Utility-first CSS framework
-- **[Tabler Icons](https://tabler.io/icons)** - Free and open source icons
-- **TypeScript** - For type-safe configuration
+---
 
-## Updating the Template
+## ✨ Features
 
-### Configuration
+- ⚡ **Blazing fast** — Built with Astro for near-zero JavaScript overhead
+- 🎨 **Dark / Light mode** — Smooth theme toggle with no flash on load
+- 📱 **Fully responsive** — Looks great on all screen sizes
+- 🧩 **Single config setup** — All content managed from one `config.ts` file
+- 🔤 **IBM Plex Mono** — Clean monospace typography throughout
+- 🚀 **Auto-deployed** — GitHub Actions CI/CD to GitHub Pages
 
-The template is designed to be easily customizable through the `src/config.ts` file. This single file controls:
+---
 
-- **Personal Information**: Name, title, description
-- **Accent Color**: Primary color theme (changing this will change the accent color site wide)
-- **Social Links**: Email, LinkedIn, Twitter, GitHub (all optional)
-- **About Section**: Personal bio/description
-- **Skills**: List of technical skills
-- **Projects**: Project showcase with descriptions and links
-- **Experience**: Work history with bullet points
-- **Education**: Educational background and achievements
+## 🛠️ Built With
 
-If skills, projects, experience, or education are removed from the config, those sections will be hidden entirely.
+| Technology | Purpose |
+|---|---|
+| [Astro](https://astro.build/) | Static site generator |
+| [Tailwind CSS v4](https://tailwindcss.com/) | Utility-first styling |
+| [Tabler Icons](https://tabler.io/icons) | Icon library |
+| [TypeScript](https://www.typescriptlang.org/) | Type-safe configuration |
+| [GitHub Actions](https://github.com/features/actions) | CI/CD deployment |
 
-### Example structures
+---
 
-Here's what the config data structure looks like for each section:
-
-#### Basic Information
-```typescript
-name: "Your Name",
-title: "Your Job Title",
-description: "Brief site description",
-accentColor: "#1d4ed8", // Hex color for theme
-```
-
-#### Social Links (all optional)
-```typescript
-social: {
-  email: "your-email@example.com",
-  linkedin: "https://linkedin.com/in/yourprofile",
-  twitter: "https://twitter.com/yourprofile", 
-  github: "https://github.com/yourusername",
-}
-```
-
-#### About Section
-```typescript
-aboutMe: "A paragraph describing yourself, your background, interests, and what you're passionate about. This appears in the About section of your portfolio."
-```
-
-#### Skills
-```typescript
-skills: ["JavaScript", "React", "Node.js", "Python", "AWS", "Docker"]
-```
-
-#### Projects
-```typescript
-projects: [
-  {
-    name: "Project Name",
-    description: "Brief description of what the project does and its impact",
-    link: "https://github.com/yourusername/project",
-    skills: ["React", "Node.js", "AWS"], // Technologies used
-  }
-]
-```
-
-#### Experience
-```typescript
-experience: [
-  {
-    company: "Company Name",
-    title: "Your Job Title",
-    dateRange: "Jan 2022 - Present",
-    bullets: [
-      "Led development of microservices architecture serving 1M+ users",
-      "Reduced API response times by 40% through optimization",
-      "Mentored team of 5 junior developers",
-    ],
-  }
-]
-```
-
-#### Education
-```typescript
-education: [
-  {
-    school: "University Name",
-    degree: "Bachelor of Science in Computer Science",
-    dateRange: "2014 - 2018",
-    achievements: [
-      "Graduated Magna Cum Laude with 3.8 GPA",
-      "Dean's List all semesters",
-      "President of Computer Science Club"
-    ]
-  }
-]
-```
-
-### Icons
-
-The template uses [Tabler Icons](https://tabler.io/icons) for all icons. If you wish to add more icons and have it look consistent with what's already there, you can browse through their extensive icon library.
-
-## Project Structure
+## 📁 Project Structure
 
 ```
-devportfolio/
+DeepanshuPortfolio/
 ├── public/
-│   └── favicon.svg          # Site favicon
+│   └── favicon.svg
 ├── src/
-│   ├── components/          # Astro components
-│   │   ├── About.astro      # About section
-│   │   ├── Education.astro  # Education section
-│   │   ├── Experience.astro # Work experience section
-│   │   ├── Footer.astro     # Site footer
-│   │   ├── Header.astro     # Navigation header
-│   │   ├── Hero.astro       # Hero/intro section
-│   │   └── Projects.astro   # Projects showcase
+│   ├── components/
+│   │   ├── About.astro        # About me section
+│   │   ├── Education.astro    # Education section
+│   │   ├── Experience.astro   # Work experience
+│   │   ├── Footer.astro       # Site footer
+│   │   ├── Header.astro       # Navigation header
+│   │   ├── Hero.astro         # Hero / intro section
+│   │   ├── Projects.astro     # Projects showcase
+│   │   └── SnapDarkMode.astro # Dark mode toggle
 │   ├── pages/
-│   │   └── index.astro      # Main page layout
+│   │   └── index.astro        # Main page layout
 │   ├── styles/
-│   │   └── global.css       # Global styles
-│   └── config.ts            # Site configuration
-├── astro.config.mjs         # Astro configuration
-├── package.json             # Project dependencies
-├── tailwind.config.js       # Tailwind configuration
-└── tsconfig.json            # TypeScript configuration
+│   │   └── global.css         # Global styles
+│   └── config.ts              # ⭐ All site content lives here
+├── .github/
+│   └── workflows/
+│       └── deploy.yml         # GitHub Pages auto-deploy
+├── astro.config.mjs
+├── package.json
+└── tsconfig.json
 ```
 
-## Local Development
+---
 
-If you'd like to run it locally:
+## 🚀 Getting Started
 
-```
-git clone https://github.com/RyanFitzgerald/devportfolio.git
-cd devportfolio
+### Prerequisites
+
+- [Node.js](https://nodejs.org/) v18+
+- npm
+
+### Run Locally
+
+```bash
+# Clone the repo
+git clone https://github.com/EzyTech007/DeepanshuPortfolio.git
+
+# Navigate into the project
+cd DeepanshuPortfolio
+
+# Install dependencies
 npm install
-```
 
-After that, start up the Astro dev server with:
-
-```
+# Start the dev server
 npm run dev
 ```
 
-## Deployment
+The site will be available at `http://localhost:4321`.
 
-The template can be deployed to any static hosting service easily (and in most cases, completely free). Here are some options:
+To make it accessible on other devices on the same network:
 
-- To deploy with Netlify, [click here](https://docs.astro.build/en/guides/deploy/netlify/).
-- To deploy with Vercel, [click here](https://docs.astro.build/en/guides/deploy/vercel/).
-- To deploy with GitHub Pages, [click here](https://docs.astro.build/en/guides/deploy/github/).
-- To deploy with Cloudflare Pages, [click here](https://docs.astro.build/en/guides/deploy/cloudflare/).
-- To deploy with Render, [click here](https://docs.astro.build/en/guides/deploy/render/).
+```bash
+npm run dev -- --host
+```
 
-Want to deploy somewhere else? Find more guides [here](https://docs.astro.build/en/guides/deploy/).
+---
 
-## Changelog
+## ⚙️ Customization
 
-To view the changelog, see CHANGELOG.md.
+All content is managed from a single file: **`src/config.ts`**
 
-## License
+```typescript
+export const siteConfig = {
+  name: "Your Name",
+  title: "Your Job Title",
+  description: "Your site description",
+  accentColor: "#1d4ed8",   // Change the theme color here
+  social: {
+    email: "you@example.com",
+    linkedin: "https://linkedin.com/in/yourprofile",
+    twitter: "https://x.com/yourhandle",
+    github: "https://github.com/yourusername",
+  },
+  aboutMe: "Write your bio here...",
+  skills: ["React", "Node.js", "Docker"],
+  projects: [ /* ... */ ],
+  experience: [ /* ... */ ],
+  education: [ /* ... */ ],
+};
+```
 
-This project is fully and completely MIT. See LICENSE.md.
+> Removing any section (skills, projects, experience, education) from the config will automatically hide it from the site.
 
-## Questions?
+---
 
-Feel free to reach out on [X (Twitter)](https://x.com/rfitzio) if you have any questions or need help.
+## 📦 Deployment
+
+This project auto-deploys to **GitHub Pages** via GitHub Actions on every push to the `portfolio_2026` branch.
+
+**Live URL:** [https://ezytech007.github.io/DeepanshuPortfolio](https://ezytech007.github.io/DeepanshuPortfolio)
+
+To deploy manually:
+
+```bash
+npm run build
+# Output is in the /dist folder
+```
+
+You can also deploy to other platforms:
+
+- [Netlify](https://docs.astro.build/en/guides/deploy/netlify/)
+- [Vercel](https://docs.astro.build/en/guides/deploy/vercel/)
+- [Cloudflare Pages](https://docs.astro.build/en/guides/deploy/cloudflare/)
+
+---
+
+## 📬 Contact
+
+**Deepanshu Choudhary**
+
+- 📧 [deepanshu7007@gmail.com](mailto:deepanshu7007@gmail.com)
+- 💼 [LinkedIn](https://www.linkedin.com/in/dev-deepanshuch/)
+- 🐦 [Twitter / X](https://x.com/Deepanshu7007Ch)
+- 🐙 [GitHub](https://github.com/deepanshu7007)
+
+---
+
+## 📄 License
+
+This project is open source and available under the [MIT License](LICENSE.md).
+
+---
+
+<div align="center">
+  <sub>Built with ❤️ using Astro + Tailwind CSS</sub>
+</div>
